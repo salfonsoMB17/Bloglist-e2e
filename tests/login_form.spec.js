@@ -34,4 +34,14 @@ describe('Blog app', () => {
       await expect(page.getByText('wrong credentials')).toBeVisible()
     })
   })
+
+  describe('When logged in', () => {
+  beforeEach(async ({ page }) => {
+    // ...
+  })
+
+  test('a new blog can be created', async ({ page }) => {
+    // ...
+  })
+})
 })
