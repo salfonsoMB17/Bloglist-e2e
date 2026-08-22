@@ -43,13 +43,13 @@ describe('Blog app', () => {
   })
 
   test('a new blog can be created', async ({ page }) => {
-    await page.getByRole('button', { name: 'new blog' }).click()
+    await page.getByRole('button', { name: 'create new' }).click()
     await page.getByRole('textbox').first().fill('testiblogi')
     await page.getByRole('textbox').nth(1).fill('testijoukko')
     await page.getByRole('textbox').nth(2).fill('www.testi.com')
     await page.getByRole('button', { name: 'create' }).click()
 
-    await expect(page.getByText('testiblogi testijoukko')).toBeVisible()
+    await expect(page.getByText('testiblogi testijoukko').first()).toBeVisible()
   })
 })
 })
