@@ -37,11 +37,19 @@ describe('Blog app', () => {
 
   describe('When logged in', () => {
   beforeEach(async ({ page }) => {
-    // ...
+    await page.getByRole('textbox').first().fill('mluukkai')
+    await page.getByRole('textbox').last().fill('secret')
+    await page.getByRole('button', { name: 'login' }).click()
   })
 
   test('a new blog can be created', async ({ page }) => {
-    // ...
+    await page.getByRole('button', { name: 'new blog' }).click()
+    await page.getByRole('textbox').first().fill('testiblogi')
+    await page.getByRole('textbox').nth(1).fill('testijoukko')
+    await page.getByRole('textbox').nth(2).fill('www.testi.com')
+    await page.getByRole('button', { name: 'create' }).click()
+
+    await expect(page.getByText('testiblogi testijoukko')).toBeVisible()
   })
 })
 })
