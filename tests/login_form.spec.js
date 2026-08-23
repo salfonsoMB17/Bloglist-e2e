@@ -1,8 +1,7 @@
 const { test, expect, beforeEach, describe } = require('@playwright/test')
 
 describe('Blog app', () => {
-  beforeEach(async ({ page, request }) => {
-    await page.goto('http://localhost:5173')
+  beforeEach(async ({ page, request }) => {    
     await request.post('http://localhost:3003/api/testing/reset')
     await request.post('http://localhost:3003/api/users/', {
       data: {
@@ -11,6 +10,7 @@ describe('Blog app', () => {
         password: 'secret'
       }
     })
+    await page.goto('http://localhost:5173')
   })
 
   test('Login form is shown', async ({ page }) => {
@@ -40,6 +40,7 @@ describe('Blog app', () => {
     await page.getByRole('textbox').first().fill('mluukkai')
     await page.getByRole('textbox').last().fill('secret')
     await page.getByRole('button', { name: 'login' }).click()
+    await expect(page.getByText('Matti Luukkainen logged in')).toBeVisible()
   })
 
   test('a new blog can be created', async ({ page }) => {
@@ -49,7 +50,21 @@ describe('Blog app', () => {
     await page.getByRole('textbox').nth(2).fill('www.testi.com')
     await page.getByRole('button', { name: 'create' }).click()
 
-    await expect(page.getByText('testiblogi testijoukko').first()).toBeVisible()
+    await expect(page.getByText('testiblogi').first()).toBeVisible()
+  })
+  
+  test('a blog can be liked', async ({ page }) => {
+    await page.getByRole('button', { name: 'create new' }).click()
+    await page.getByRole('textbox').first().fill('like test blog')
+    await page.getByRole('textbox').nth(1).fill('like author')
+    await page.getByRole('textbox').nth(2).fill('www.like.com')
+    await page.getByRole('button', { name: 'create' }).click()
+
+    await expect(page.locator('.blog-title').first()).toBeVisible()
+    await page.getByRole('button', { name: 'view' }).first().click()
+    await page.getByRole('button', { name: 'like' }).first().click()
+
+    await expect(page.locator('.blog-likes').first()).toContainText('1')
   })
 })
 })
