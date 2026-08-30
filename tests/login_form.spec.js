@@ -83,5 +83,27 @@ describe('Blog app', () => {
     await expect(page.locator('.blog-title')).toHaveCount(0)
   })
   
+  test('blogs are ordered according to likes', async ({ page }) => {
+    await page.getByRole('button', { name: 'create new' }).click()
+    await page.getByRole('textbox').first().fill('like test blog')
+    await page.getByRole('textbox').nth(1).fill('like author')
+    await page.getByRole('textbox').nth(2).fill('www.like.com')
+    await page.getByRole('button', { name: 'create' }).click()
+
+    await page.getByRole('button', { name: 'create new' }).click()
+    await page.getByRole('textbox').first().fill('like test blog 2')
+    await page.getByRole('textbox').nth(1).fill('like author 2')
+    await page.getByRole('textbox').nth(2).fill('www.like2.com')
+    await page.getByRole('button', { name: 'create' }).click()
+
+    await page.getByRole('button', { name: 'view' }).first().click()
+    await page.getByRole('button', { name: 'like' }).first().click()
+    await expect(page.locator('.blog-likes').first()).toContainText('1')
+    await page.getByRole('button', { name: 'like' }).first().click()
+    await expect(page.locator('.blog-likes').first()).toContainText('2')
+
+    await expect(page.locator('.blog-title').first()).toContainText('like test blog')
+  })
+  
 })
 })
