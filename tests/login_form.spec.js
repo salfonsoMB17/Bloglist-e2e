@@ -67,43 +67,80 @@ describe('Blog app', () => {
       await expect(page.locator('.blog-likes').first()).toContainText('1')
     })
     
-  test('a blog can be deleted', async ({ page }) => {
-    await page.getByRole('button', { name: 'create new' }).click()
-    await page.getByRole('textbox').first().fill('delete test blog')
-    await page.getByRole('textbox').nth(1).fill('delete author')
-    await page.getByRole('textbox').nth(2).fill('www.delete.com')
-    await page.getByRole('button', { name: 'create' }).click()
+    test('a blog can be deleted', async ({ page }) => {
+      await page.getByRole('button', { name: 'create new' }).click()
+      await page.getByRole('textbox').first().fill('delete test blog')
+      await page.getByRole('textbox').nth(1).fill('delete author')
+      await page.getByRole('textbox').nth(2).fill('www.delete.com')
+      await page.getByRole('button', { name: 'create' }).click()
 
-    await expect(page.locator('.blog-title').first()).toBeVisible()
-    await page.getByRole('button', { name: 'view' }).first().click()
+      await expect(page.locator('.blog-title').first()).toBeVisible()
+      await page.getByRole('button', { name: 'view' }).first().click()
 
-    page.on('dialog', dialog => dialog.accept())
-    await page.getByRole('button', { name: 'remove' }).first().click()
+      page.on('dialog', dialog => dialog.accept())
+      await page.getByRole('button', { name: 'remove' }).first().click()
 
-    await expect(page.locator('.blog-title')).toHaveCount(0)
-  })
+      await expect(page.locator('.blog-title')).toHaveCount(0)
+    })
+    
+    test('blogs are ordered according to likes', async ({ page }) => {
+      await page.getByRole('button', { name: 'create new' }).click()
+      await page.getByRole('textbox').first().fill('like test blog')
+      await page.getByRole('textbox').nth(1).fill('like author')
+      await page.getByRole('textbox').nth(2).fill('www.like.com')
+      await page.getByRole('button', { name: 'create' }).click()
+
+      await page.getByRole('button', { name: 'create new' }).click()
+      await page.getByRole('textbox').first().fill('like test blog 2')
+      await page.getByRole('textbox').nth(1).fill('like author 2')
+      await page.getByRole('textbox').nth(2).fill('www.like2.com')
+      await page.getByRole('button', { name: 'create' }).click()
+
+      await page.getByRole('button', { name: 'view' }).first().click()
+      await page.getByRole('button', { name: 'like' }).first().click()
+      await expect(page.locator('.blog-likes').first()).toContainText('1')
+      await page.getByRole('button', { name: 'like' }).first().click()
+      await expect(page.locator('.blog-likes').first()).toContainText('2')
+
+      await expect(page.locator('.blog-title').first()).toContainText('like test blog')
+    })
   
-  test('blogs are ordered according to likes', async ({ page }) => {
-    await page.getByRole('button', { name: 'create new' }).click()
-    await page.getByRole('textbox').first().fill('like test blog')
-    await page.getByRole('textbox').nth(1).fill('like author')
-    await page.getByRole('textbox').nth(2).fill('www.like.com')
-    await page.getByRole('button', { name: 'create' }).click()
-
-    await page.getByRole('button', { name: 'create new' }).click()
-    await page.getByRole('textbox').first().fill('like test blog 2')
-    await page.getByRole('textbox').nth(1).fill('like author 2')
-    await page.getByRole('textbox').nth(2).fill('www.like2.com')
-    await page.getByRole('button', { name: 'create' }).click()
-
-    await page.getByRole('button', { name: 'view' }).first().click()
-    await page.getByRole('button', { name: 'like' }).first().click()
-    await expect(page.locator('.blog-likes').first()).toContainText('1')
-    await page.getByRole('button', { name: 'like' }).first().click()
-    await expect(page.locator('.blog-likes').first()).toContainText('2')
-
-    await expect(page.locator('.blog-title').first()).toContainText('like test blog')
   })
-  
-})
+
+  describe('Blog delete button visibility', () => {
+    beforeEach(async ({ page, request }) => {
+      await request.post('http://localhost:3003/api/users/', {
+        data: {
+          username: 'otheruser',
+          name: 'Other User',
+          password: 'secret'
+        }
+      })
+
+      await page.getByRole('textbox').first().fill('mluukkai')
+      await page.getByRole('textbox').last().fill('secret')
+      await page.getByRole('button', { name: 'login' }).click()
+      await expect(page.getByText('Matti Luukkainen logged in')).toBeVisible()
+
+      await page.getByRole('button', { name: 'create new' }).click()
+      await page.getByRole('textbox').first().fill('creator test blog')
+      await page.getByRole('textbox').nth(1).fill('creator author')
+      await page.getByRole('textbox').nth(2).fill('www.creator.com')
+      await page.getByRole('button', { name: 'create' }).click()
+      await expect(page.locator('.blog-title').first()).toBeVisible()
+
+      await page.getByRole('button', { name: 'logout' }).click()
+    })
+
+    test('only the creator sees the remove button', async ({ page }) => {
+      await page.getByRole('textbox').first().fill('otheruser')
+      await page.getByRole('textbox').last().fill('secret')
+      await page.getByRole('button', { name: 'login' }).click()
+      await expect(page.getByText('Other User logged in')).toBeVisible()
+
+      await page.getByRole('button', { name: 'view' }).first().click()
+      await expect(page.getByRole('button', { name: 'remove' })).not.toBeVisible()
+    })
+  })
+
 })
